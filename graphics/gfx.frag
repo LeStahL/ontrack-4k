@@ -2,11 +2,14 @@
 
 out vec4 out_color;
 
-layout(location = 0) uniform float iTime;
-layout(location = 1) uniform int iFrame;
-layout(location = 2) uniform vec2 iResolution;
-layout(location = 3) uniform int iPass;
+layout(location = 0) uniform int iFrame;
+layout(location = 1) uniform int iSample;
+layout(location = 2) uniform int iPass;
+layout(location = 3) uniform ivec2 iResolutionInteger;
 layout(location = 4) uniform sampler2D iChannel0;
+
+float iTime = float(iSample) / 44100.;
+vec2 iResolution = vec2(iResolutionInteger);
 
 const vec3 c = vec3(1,0,-1);
 const float pi = 3.14159;
