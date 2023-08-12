@@ -70,6 +70,7 @@ declarations:
     extern _glBindTexture@8
     extern _glTexImage2D@36
     extern _glTexParameteri@12
+    extern _Sleep@4
 
 ; Shader source, output of the minifier.
 %include "gfx.inc"
@@ -362,6 +363,9 @@ _WinMainCRTStartup:
     push dword [width]
     push UNIFORM_LOCATION_IRESOLUTION
     call eax
+
+    push 2000
+    call _Sleep@4
 
     ; waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL );
     times 3 push 0
