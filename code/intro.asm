@@ -1,3 +1,5 @@
+; Those are constants that need to be searched in the 
+; Windows SDK or OpenGL headers.
 %define CDS_FULLSCREEN 0x4
 %define PFD_DRAW_TO_WINDOW 0x4
 %define PFD_TYPE_RGBA 0
@@ -13,7 +15,12 @@
 %define GL_FRAGMENT_SHADER 0x8B30
 %define PM_REMOVE 0x1
 %define VK_ESCAPE 0x1B
+%define WAVE_FORMAT_IEEE_FLOAT 0x3
+%define WHDR_PREPARED 0x2
+%define WAVE_MAPPER 0xFFFFFFFF
+%define TIME_SAMPLES 0x2
 
+; Those we link.
 section declarations text
 declarations:
     extern _GetAsyncKeyState@4
@@ -30,9 +37,17 @@ declarations:
     extern _glRecti@16
     extern _PeekMessageA@20
     extern _DispatchMessageA@4
+    extern _su_render_song@4
+    extern _CreateThread@24
+    extern _waveOutOpen@24
+    extern _waveOutWrite@12
 
+; Shader source, output of the minifier.
 %include "gfx.inc"
+shadersource:
+    dd _gfx_frag
 
+; Those we get over wglGetProcAddress.
 section glcreateshaderprogramv data
 glcreateshaderprogramv:
     db "glCreateShaderProgramv", 0
@@ -69,12 +84,14 @@ section gluniform1f data
 gluniform1f:
     db 'glUniform1f', 0
 
+; For win32 messages.
 section msg bss
 msg:
     resd 1
 message:
     resd 7
 
+; Graphics related data.
 section pixelformat data
 pixelformat:
     dw (pixelformat_end - pixelformat)
@@ -102,6 +119,46 @@ height:
     dd HEIGHT
     times 2 dd 0
 devmode_end:
+
+; Music related data.
+%define SAMPLE_SIZE 4
+%define CHANNEL_COUNT 2
+; This needs to be extracted manually from the header sointu generates.
+%define SAMPLE_COUNT 3663360
+%define SAMPLE_RATE 44100
+
+section wavefmt data
+wavefmt:
+    dw WAVE_FORMAT_IEEE_FLOAT
+    dw CHANNEL_COUNT
+    dd SAMPLE_RATE 
+    dd SAMPLE_SIZE * SAMPLE_RATE * CHANNEL_COUNT
+    dw SAMPLE_SIZE * CHANNEL_COUNT
+    dw SAMPLE_SIZE * 8
+    dw 0
+
+section wavehdr data
+wavehdr:
+    dd soundbuffer
+    dd SAMPLE_COUNT * SAMPLE_SIZE * CHANNEL_COUNT
+    times 2 dd 0
+    dd WHDR_PREPARED
+    times 4 dd 0
+wavehdr_end:
+
+section soundbuffer bss
+soundbuffer:
+    resd SAMPLE_COUNT * SAMPLE_SIZE * CHANNEL_COUNT
+
+section hwaveout bss
+hwaveout:
+    resd 1
+
+section mmtime data
+mmtime:
+    dd TIME_SAMPLES
+time:
+    times 2 dd 0
 
 section entry text
     global _WinMainCRTStartup
@@ -152,7 +209,7 @@ _WinMainCRTStartup:
     push glcreateshaderprogramv
     call _wglGetProcAddress@4
 
-    push _gfx_frag
+    push shadersource
     push 1
     push GL_FRAGMENT_SHADER
     call eax
@@ -166,6 +223,26 @@ _WinMainCRTStartup:
     ; Hide cursor.
     push 0
     call _ShowCursor@4
+
+    ; CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
+    times 2 push 0
+    push soundbuffer
+    push _su_render_song@4
+    times 2 push 0
+    call _CreateThread@24
+
+    ; waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL );
+    times 3 push 0
+    push wavefmt
+    push WAVE_MAPPER
+    push hwaveout
+    call _waveOutOpen@24
+
+    ; waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
+    push wavehdr_end - wavehdr
+    push wavehdr
+    push dword [hwaveout]
+    call _waveOutWrite@12
 
     mainloop:
         ; Dispatch all available win32 messages 

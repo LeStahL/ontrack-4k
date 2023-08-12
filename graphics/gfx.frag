@@ -261,7 +261,7 @@ float lfnoise(vec2 t)
 
 float tj,
     dt,
-    bpm = 120.,
+    bpm = 130.,
     spb,
     nbeats,
     scale,
