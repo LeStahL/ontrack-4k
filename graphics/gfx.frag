@@ -162,17 +162,17 @@ void dmin(inout vec4 d, float x, float y, float z, float w)
 }
 
 // 3D noise function (IQ)
-float noise(vec3 p)
-{
-	vec3 ip=floor(p),
-        s=vec3(7, 157, 113);
-	p-=ip;
-	vec4 h=vec4(0, s.yz, s.y+s.z)+dot(ip, s);
-	p=p*p*(3.-2.*p);
-	h=mix(fract(sin(h)*43758.5), fract(sin(h+s.x)*43758.5), p.x);
-	h.xy=mix(h.xz, h.yw, p.y);
-	return mix(h.x, h.y, p.z);
-}
+// float noise(vec3 p)
+// {
+// 	vec3 ip=floor(p),
+//         s=vec3(7, 157, 113);
+// 	p-=ip;
+// 	vec4 h=vec4(0, s.yz, s.y+s.z)+dot(ip, s);
+// 	p=p*p*(3.-2.*p);
+// 	h=mix(fract(sin(h)*43758.5), fract(sin(h+s.x)*43758.5), p.x);
+// 	h.xy=mix(h.xz, h.yw, p.y);
+// 	return mix(h.x, h.y, p.z);
+// }
 
 // method by fizzer
 vec3 hashHs(vec3 n, float seed)
@@ -182,53 +182,6 @@ vec3 hashHs(vec3 n, float seed)
         a = 6.2831853 * v;
     u = 2.0*u - 1.0;
     return normalize( n + vec3(sqrt(1.0-u*u) * vec2(cos(a), sin(a)), u) );
-}
-
-// rotation
-void pR(inout vec2 p, float a)
-{
-	p = cos(a)*p+sin(a)*vec2(p.y, -p.x);
-}
-
-float m(vec2 x)
-{
-    return max(x.x,x.y);
-}
-
-float d210(vec2 x)
-{
-    return min(max(max(max(max(min(max(max(m(abs(vec2(abs(abs(x.x)-.25)-.25, x.y))-vec2(.2)), -m(abs(vec2(x.x+.5, abs(abs(x.y)-.05)-.05))-vec2(.12,.02))), -m(abs(vec2(abs(x.x+.5)-.1, x.y-.05*sign(x.x+.5)))-vec2(.02,.07))), m(abs(vec2(x.x+.5,x.y+.1))-vec2(.08,.04))), -m(abs(vec2(x.x, x.y-.04))-vec2(.02, .08))), -m(abs(vec2(x.x, x.y+.1))-vec2(.02))), -m(abs(vec2(x.x-.5, x.y))-vec2(.08,.12))), -m(abs(vec2(x.x-.5, x.y-.05))-vec2(.12, .07))), m(abs(vec2(x.x-.5, x.y))-vec2(.02, .08)));
-}
-
-float datz(vec2 uv)
-{
-    vec2 a = abs(uv)-.25;
-    return max(max(min(max(min(abs(mod(uv.x-1./12.,1./6.)-1./12.)-1./30., abs(a.x+a.y)-.015),a.x+a.y), max(a.x+.1,a.y+.1)), -length(uv-vec2(0.,.04))+.045), -max(a.x+.225,a.y+.175));
-}
-
-const float f = 1.e4;
-
-// Created by David Hoskins and licensed under MIT.
-// See https://www.shadertoy.com/view/4djSRW.
-// float->vec2 hash function
-vec2 hash21(float p)
-{
-	vec3 p3 = fract(vec3(p) * vec3(.1031, .1030, .0973));
-	p3 += dot(p3, p3.yzx + 33.33);
-    return fract((p3.xx+p3.yz)*p3.zy);
-
-}
-
-vec2 uva;
-vec3 palette(float scale)
-{
-    if(scale<=0.)
-        return mix(vec3(0.96,0.26,0.07), vec3(1.), clamp(scale+1.,0.,1.));
-    if(scale <= 1.)
-        return mix(vec3(0.21,0.30,0.42), vec3(1.), fract(scale));
-    if(scale <= 2.)
-        return mix(vec3(0.21,0.42,0.30), vec3(0.21,0.30,0.42), fract(scale));
-    return mix(vec3(1.00,0.94,0.41), vec3(0.21,0.30,0.42), fract(scale));
 }
 
 float sdTorus( vec3 p, vec2 t )
@@ -460,7 +413,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
             m2 = map(pos2,false);
             t2+=m2.x;
             
-           	if (m2.y>=1.&&m2.z==0.) scol+= .5 +5.*m1.x*noise(7.*pos1+iTime);	// if ceiling hit
+           	// if (m2.y>=1.&&m2.z==0.) scol+= .5 +5.*m1.x*noise(7.*pos1+iTime);	// if ceiling hit
         }
         
       
@@ -508,20 +461,20 @@ void post( out vec4 fragColor, in vec2 fragCoord )
 
 void main() {
     if(iPass == 0) {
-        // mainImage(out_color, gl_FragCoord.xy);
-        float ssaa = 1.;
-        out_color = vec4(0.);
-        float bound = sqrt(ssaa)-1.;
-            for(float i = -.5*bound; i<=.5*bound; i+=1.)
-                for(float j=-.5*bound; j<=.5*bound; j+=1.)
-                {
-                    vec4 c1;
-                    float r = pi/4.;
-                    mat2 R = mat2(cos(r),sin(r),-sin(r),cos(r));
-                    mainImage(c1, gl_FragCoord.xy+R*(vec2(i,j)*1./max(bound, 1.)));
-                    out_color += c1;
-                }
-        out_color /= ssaa;
+        mainImage(out_color, gl_FragCoord.xy);
+        // float ssaa = 1.;
+        // out_color = vec4(0.);
+        // float bound = sqrt(ssaa)-1.;
+        //     for(float i = -.5*bound; i<=.5*bound; i+=1.)
+        //         for(float j=-.5*bound; j<=.5*bound; j+=1.)
+        //         {
+        //             vec4 c1;
+        //             float r = pi/4.;
+        //             mat2 R = mat2(cos(r),sin(r),-sin(r),cos(r));
+        //             mainImage(c1, gl_FragCoord.xy+R*(vec2(i,j)*1./max(bound, 1.)));
+        //             out_color += c1;
+        //         }
+        // out_color /= ssaa;
     }
     else post(out_color, gl_FragCoord.xy);
 
