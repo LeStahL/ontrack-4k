@@ -13,6 +13,21 @@ vec2 iResolution = vec2(iResolutionInteger);
 
 const vec3 c = vec3(1,0,-1);
 const float pi = 3.14159;
+float tj,
+    dt,
+    bpm = 65.,
+    spb,
+    nbeats,
+    scale,
+    stepTime,
+    hardBeats,
+    expandRings,
+    sineExpandRings,
+    ringHeight,
+    colorEscalation,
+    glowEscalation,
+    colorCandyNess,
+    flashBackground;
 
 // Created by David Hoskins and licensed under MIT.
 // See https://www.shadertoy.com/view/4djSRW.
@@ -262,23 +277,11 @@ float lfnoise(vec2 t)
     return mix(v1.x, v1.y, t.x);
 }
 
-float tj,
-    dt,
-    bpm = 130.,
-    spb,
-    nbeats,
-    scale,
-    stepTime,
-    hardBeats,
-    expandRings,
-    sineExpandRings,
-    ringHeight,
-    colorEscalation,
-    glowEscalation,
-    colorCandyNess,
-    flashBackground;
 vec4 map(vec3 p,bool flag)
 {
+    float e = .05 * iTime;
+    p.xy *= mat2(cos(e), -sin(e), sin(e), cos(e));
+
     vec4 d = vec4(1),
         q;
     
@@ -388,26 +391,32 @@ vec3 radiance(
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
     spb = 60. / bpm;
+    dt = mod(iTime, spb);
+    tj = iTime - dt;
+    bool a = int(round(tj/spb)) % 4 == 3;
+    if(a) iTime -= .375 * spb;
+    
     stepTime = mod(iTime+.5*spb, spb)-.5*spb;
     nbeats = (iTime-stepTime+.5*spb)/spb + smoothstep(-.1*spb, .1*spb, stepTime);
     scale = smoothstep(-.1*spb, 0., stepTime)*smoothstep(.7*spb, 0., stepTime);
     hardBeats = round((iTime-mod(iTime, spb))/spb);
-    dt = mod(iTime, spb);
-    tj = iTime - dt;
     
-    colorEscalation = smoothstep(4., 8., nbeats);
-    glowEscalation = smoothstep(8., 12., nbeats);
-    colorCandyNess = smoothstep(12., 16., nbeats);
-    ringHeight = smoothstep(16., 20., nbeats) * (1. - .9*smoothstep(32., 36., nbeats));
-    sineExpandRings = smoothstep(20., 24., nbeats) * (1. - smoothstep(40., 44., nbeats));
-    expandRings = smoothstep(24., 28., nbeats) * (1. - smoothstep(36., 40., nbeats));
-    flashBackground = smoothstep(28., 32., nbeats);
+    if(a) iTime += .375 * spb;
+    
+    float sa = 6.;
+    colorEscalation = smoothstep(sa, 1.5*sa, nbeats) * (1. - smoothstep(12. *sa, 12.5*sa, nbeats));
+    glowEscalation = smoothstep(2.*sa, 2.5*sa, nbeats);
+    colorCandyNess = smoothstep(3.*sa, 3.5*sa, nbeats);
+    ringHeight = smoothstep(4.*sa, 4.5*sa, nbeats) * (1. - smoothstep(10.*sa, 10.5*sa, nbeats));
+    sineExpandRings = smoothstep(5.*sa, 5.5*sa, nbeats) * (1. - smoothstep(9.*sa, 9.5*sa, nbeats));
+    expandRings = smoothstep(6.*sa, 6.5*sa, nbeats) * (1. - smoothstep(8.*sa, 8.5*sa, nbeats));
+    flashBackground = smoothstep(7.*sa, 7.5*sa, nbeats);
     
     fragColor = c.yyyx;
 	vec2 uv = fragCoord.xy / iResolution.xy;
 
 	// borders :(
-	//if(uv.y>.11 && uv.y<.89)
+	if(uv.y>.11 && uv.y<.89)
 	{
     	
 		
@@ -452,10 +461,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
                 nor1 = normal(pos1); 
         
                 // cook torrance
-                
-                float as = .3,
-                    ae = mod(pos1.x, as) - .5,
-                    aej = (pos1.x - ae);
                 
                 scol += 5.e1 * weightedOklabLinearGradientOklab(m1.w) * (.3 + .1 * radiance(nor1, normalize(lpos1-pos1), normalize(ro1-pos1), roughness));
                 scol += 5.e1 * weightedOklabLinearGradientOklab(m1.w) * (.3 + .1 * radiance(nor1, normalize(lpos2-pos1), normalize(ro1-pos1), roughness));
@@ -521,4 +526,6 @@ void post( out vec4 fragColor, in vec2 fragCoord )
 void main() {
     if(iPass == 0) mainImage(out_color, gl_FragCoord.xy);
     else post(out_color, gl_FragCoord.xy);
+
+    out_color.rgb *= smoothstep(0., 2., iTime) * smoothstep(76., 74., iTime);
 }

@@ -294,13 +294,13 @@ _WinMainCRTStartup:
     call _glBindTexture@8
 
 	; glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    push GL_NEAREST
+    push GL_LINEAR
     push GL_TEXTURE_MAG_FILTER
     push GL_TEXTURE_2D
     call _glTexParameteri@12
 
 	; glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    push GL_NEAREST
+    push GL_LINEAR
     push GL_TEXTURE_MIN_FILTER
     push GL_TEXTURE_2D
     call _glTexParameteri@12
