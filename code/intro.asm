@@ -161,7 +161,7 @@ _WinMainCRTStartup:
     ; Use shader program
     push gluseprogram
     call _wglGetProcAddress@4
-    call eax    
+    call eax
 
     ; Hide cursor.
     push 0
