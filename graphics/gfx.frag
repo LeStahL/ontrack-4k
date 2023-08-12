@@ -394,11 +394,15 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     dt = mod(iTime, spb);
     tj = iTime - dt;
     bool a = int(round(tj/spb)) % 4 == 3;
-    if(a) iTime -= .375 * spb;
-    
+    if(a) {
+        iTime -= .375 * spb;
+        dt = mod(iTime, spb);
+        tj = iTime - dt;
+    }
+
     stepTime = mod(iTime+.5*spb, spb)-.5*spb;
     nbeats = (iTime-stepTime+.5*spb)/spb + smoothstep(-.1*spb, .1*spb, stepTime);
-    scale = smoothstep(-.1*spb, 0., stepTime)*smoothstep(.7*spb, 0., stepTime);
+    scale = smoothstep(0., .05 * spb, stepTime)*smoothstep(.7*spb, 0., stepTime);
     hardBeats = round((iTime-mod(iTime, spb))/spb);
     
     if(a) iTime += .375 * spb;
