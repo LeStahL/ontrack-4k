@@ -163,6 +163,13 @@ time:
 section entry text
     global _WinMainCRTStartup
 _WinMainCRTStartup:
+    ; CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
+    times 2 push 0
+    push soundbuffer
+    push _su_render_song@4
+    times 2 push 0
+    call _CreateThread@24
+
     ; Change to full screen.
     push CDS_FULLSCREEN
     push devmode
@@ -223,13 +230,6 @@ _WinMainCRTStartup:
     ; Hide cursor.
     push 0
     call _ShowCursor@4
-
-    ; CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
-    times 2 push 0
-    push soundbuffer
-    push _su_render_song@4
-    times 2 push 0
-    call _CreateThread@24
 
     ; waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL );
     times 3 push 0
