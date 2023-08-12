@@ -94,35 +94,6 @@ vec3 oklch2oklab(vec3 lch) {
     return vec3(lch.x, lch.y * vec2(cos(lch.z), sin(lch.z)));
 }
 
-/* brownish clay
-const int COLOR_COUNT = 5;
-
-vec3 gradientColors[] = vec3[](
-        vec3(0.86,0.86,0.91),
-        vec3(0.67,0.64,0.71),
-        vec3(0.27,0.22,0.28),
-        vec3(0.43,0.25,0.32),
-        vec3(0.59,0.40,0.46)
-); */
-
-/*
-const int COLOR_COUNT = 5;
-vec3 gradientColors[] = vec3[](
-        vec3(0.02,0.84,0.63),
-        vec3(0.96,0.96,1.00),
-        vec3(1.00,0.82,0.39),
-        vec3(0.29,0.39,0.43),
-        vec3(0.04,0.08,0.10)
-);*/
-/*
-const int COLOR_COUNT = 5;
-vec3 gradientColors[] = vec3[](
-        vec3(0.20,0.07,0.18),
-        vec3(0.25,0.25,0.32),
-        vec3(0.38,0.54,0.52),
-        vec3(0.87,0.76,0.62),
-        vec3(0.77,0.16,0.25)
-);*/
 const int COLOR_COUNT = 8;
 vec3 gradientColors[] = vec3[](
         c.yyy,
@@ -180,10 +151,10 @@ vec3 weightedOklabLinearGradientOklab(float amount) {
     )));
 }
 
-vec3 lpos1 = vec3(0), 
-    lpos2=vec3(0), 
-    lpos3=vec3(0,1,0), 
-    scatter =vec3(0);
+vec3 lpos1, 
+    lpos2, 
+    lpos3, 
+    scatter;
 
 void dmin(inout vec4 d, float x, float y, float z, float w)
 {
@@ -277,10 +248,12 @@ float lfnoise(vec2 t)
     return mix(v1.x, v1.y, t.x);
 }
 
+float e = .05 * iTime;
+mat2 MM = mat2(cos(e), -sin(e), sin(e), cos(e));
+
 vec4 map(vec3 p,bool flag)
 {
-    float e = .05 * iTime;
-    p.xy *= mat2(cos(e), -sin(e), sin(e), cos(e));
+    p.xy *= MM;
 
     vec4 d = vec4(1),
         q;
@@ -298,7 +271,7 @@ vec4 map(vec3 p,bool flag)
     dmin(d, db, 0., 0., 0.);
     if(flag) scatter += max(-(db-1.1),0.) * .26 * flashBackground * .5 * c.xxx * step(.5, hash12(vec2(xj, tj) + .5));
 
-    p.y += .4 * iTime;
+    p.y += (.4 + .4 * step(29., iTime) * step(iTime, 59.) ) * iTime;
         
     // Silo
     float ps = (.1 + .9 * ringHeight) * (.05 + .95 * hash11(tj + .1));
@@ -324,7 +297,7 @@ vec4 map(vec3 p,bool flag)
 
 vec3 normal(vec3 p)
 {
-	vec2 e = vec2(0, .0001);
+	vec2 e = vec2(0, .001);
 	return normalize(map(p,false).x-vec3(map(p - e.yxx,false).x, map(p - e.xyx,false).x, map(p - e.xxy,false).x));
 }
 
@@ -390,6 +363,11 @@ vec3 radiance(
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
+    lpos1 = vec3(0); 
+    lpos2=vec3(0); 
+    lpos3=vec3(0,1,0); 
+    scatter =vec3(0);
+
     spb = 60. / bpm;
     dt = mod(iTime, spb);
     tj = iTime - dt;
@@ -401,7 +379,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     }
 
     stepTime = mod(iTime+.5*spb, spb)-.5*spb;
-    nbeats = (iTime-stepTime+.5*spb)/spb + smoothstep(-.1*spb, .1*spb, stepTime);
+    // nbeats = (iTime-stepTime+.5*spb)/spb + smoothstep(-.1*spb, .1*spb, stepTime);
+    nbeats = tj / spb;
     scale = smoothstep(0., .05 * spb, stepTime)*smoothstep(.7*spb, 0., stepTime);
     hardBeats = round((iTime-mod(iTime, spb))/spb);
     
@@ -528,7 +507,22 @@ void post( out vec4 fragColor, in vec2 fragCoord )
 }
 
 void main() {
-    if(iPass == 0) mainImage(out_color, gl_FragCoord.xy);
+    if(iPass == 0) {
+        // mainImage(out_color, gl_FragCoord.xy);
+        float ssaa = 1.;
+        out_color = vec4(0.);
+        float bound = sqrt(ssaa)-1.;
+            for(float i = -.5*bound; i<=.5*bound; i+=1.)
+                for(float j=-.5*bound; j<=.5*bound; j+=1.)
+                {
+                    vec4 c1;
+                    float r = pi/4.;
+                    mat2 R = mat2(cos(r),sin(r),-sin(r),cos(r));
+                    mainImage(c1, gl_FragCoord.xy+R*(vec2(i,j)*1./max(bound, 1.)));
+                    out_color += c1;
+                }
+        out_color /= ssaa;
+    }
     else post(out_color, gl_FragCoord.xy);
 
     out_color.rgb *= smoothstep(0., 2., iTime) * smoothstep(76., 74., iTime);
