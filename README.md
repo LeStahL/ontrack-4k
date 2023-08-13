@@ -2,7 +2,7 @@
 PC-4k intro by NR4/Team210, shown in the On-Track 2023 Intro Compo (which was held on the Chaos Communication Camp 2023).
 
 # Building
-You need CMake, Ninja, clang, lld-link in your PATH. The remaining dependencies (shader_minifier, crinkler, glslangValidator, nasm, glext, khrplatform, go) can be in your system PATH, but will be downloaded automatically if they're not present.
+You need CMake, Ninja, clang, lld-link in your PATH. The remaining dependencies (shader_minifier, crinkler, glslangValidator, nasm, glext, khrplatform, go) can be in your system PATH, but will be downloaded automatically if they're not present. MSVC build tools or Visual Studio (specifically the Windows 10 SDK) need to be installed, but don't need to be in the system PATH if you chose default install locations.
 
 Before building, update the git submodules:
 `git submodule update --init --recursive.`
