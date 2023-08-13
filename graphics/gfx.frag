@@ -325,6 +325,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     dt = mod(iTime, spb);
     tj = iTime - dt;
     bool a = int(round(tj/spb)) % 4 == 3;
+    
     if(a) {
         iTime -= .375 * spb;
         dt = mod(iTime, spb);
@@ -336,9 +337,15 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     nbeats = tj / spb;
     scale = smoothstep(0., .05 * spb, stepTime)*smoothstep(.7*spb, 0., stepTime);
     hardBeats = round((iTime-mod(iTime, spb))/spb);
-    
+
+    if(iTime > 73.) {
+        tj = mod(73., spb);
+        scale = 0.;
+        nbeats = tj / spb;
+    }
+
     if(a) iTime += .375 * spb;
-    
+
     float sa = 6.;
     colorEscalation = smoothstep(sa, 1.5*sa, nbeats) * (1. - smoothstep(12. *sa, 12.5*sa, nbeats));
     glowEscalation = smoothstep(2.*sa, 2.5*sa, nbeats);
