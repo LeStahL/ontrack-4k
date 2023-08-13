@@ -25,11 +25,13 @@ If you want to build the actual release archive like it's on scene.org, which ma
 Then use the above commands to build and install. The release archive will be available in the install-prefix `ontrack-4k`.
 
 # License
-This product is (c) 2023 Alexander Kraus <nr4@z10.info> and GPLv3 (see LICENSE for details).
+The source of product is (c) 2023 Alexander Kraus <nr4@z10.info> and GPLv3 (see LICENSE for details). The resulting audiovisual artifact is (c) 2023 Alexander Kraus <nr4@z10.info> and CC BY-NC-SA 3.0; see https://creativecommons.org/licenses/by-nc-sa/4.0/. If that is not enough for you, contact me and we might work something out.
 
 # Credits
 I'm back to writing intros. This time, I wrote music, graphics and code all by myself. Enjoy.
 
-Greetings go out to LJ, epoqe and Team210.
+Greetings go out to LJ, copernicium, epoqe, slay bells, Alcatraz, Farbrausch, AttentionWhore, TRBL, Mercury, BitbendaZ, K2 and Team210.
+
+Fuckings to the thieves ripping quality stuff and reusing in their own petty commercial productions without credit, dogshit coders polluting code bases with bugged and/or unmaintainable source, wannabes failing to create but still broadcasting their opinion on my channels.
 
 I can not die.
