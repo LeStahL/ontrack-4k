@@ -19,6 +19,11 @@ and build with
 Build a release archive using
 `ninja install`.
 
+If you want to build the actual release archive like it's on scene.org, which may take a very long time, depending on your hardware, delete CMakeCache.txt and configure using the Crinkler toolchain:
+`rm CMakeCache.txt && cmake .. -G"Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=ontrack-4k -DCMAKE_TOOLCHAIN_FILE=../toolchain/crinkler.cmake`.
+
+Then use the above commands to build and install. The release archive will be available in the install-prefix `ontrack-4k`.
+
 # License
 This product is (c) 2023 Alexander Kraus <nr4@z10.info> and GPLv3 (see LICENSE for details).
 
