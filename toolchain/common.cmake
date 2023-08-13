@@ -1,3 +1,19 @@
+# ontrack-4k
+# Copyright (C) 2023  Alexander Kraus <nr4@z10.info>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 include("${CMAKE_CURRENT_LIST_DIR}/../external/cmake-find-or-download/find-or-download.cmake")
 
 find_or_download_if_not_present(GLSLANG_VALIDATOR glslangValidator.exe "https://github.com/KhronosGroup/glslang/releases/download/master-tot/glslang-master-windows-x64-Release.zip" bin/)

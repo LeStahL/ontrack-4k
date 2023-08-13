@@ -1,3 +1,19 @@
+// ontrack-4k
+// Copyright (C) 2023  Alexander Kraus <nr4@z10.info>
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 #version 450
 
 out vec4 out_color;
@@ -106,7 +122,6 @@ vec3 gradientColors[] = vec3[](
         vec3(1.00,0.92,0.80)
 );
 
-
 vec3 weightedOklabLinearGradientOklab(float amount) {
     amount = fract(amount);
     // First rescale amount to match the distance in the color space.
@@ -161,20 +176,7 @@ void dmin(inout vec4 d, float x, float y, float z, float w)
 	if( x < d.x ) d = vec4(x, y, z, w);
 }
 
-// 3D noise function (IQ)
-// float noise(vec3 p)
-// {
-// 	vec3 ip=floor(p),
-//         s=vec3(7, 157, 113);
-// 	p-=ip;
-// 	vec4 h=vec4(0, s.yz, s.y+s.z)+dot(ip, s);
-// 	p=p*p*(3.-2.*p);
-// 	h=mix(fract(sin(h)*43758.5), fract(sin(h+s.x)*43758.5), p.x);
-// 	h.xy=mix(h.xz, h.yw, p.y);
-// 	return mix(h.x, h.y, p.z);
-// }
-
-// method by fizzer
+// Method by fizzer
 vec3 hashHs(vec3 n, float seed)
 {
     float u = hash11( 78.233 + seed),
@@ -184,7 +186,8 @@ vec3 hashHs(vec3 n, float seed)
     return normalize( n + vec3(sqrt(1.0-u*u) * vec2(cos(a), sin(a)), u) );
 }
 
-float sdTorus( vec3 p, vec2 t )
+// From https://iquilezles.org/articles/distfunctions; written by iq.
+float sdTorus(vec3 p, vec2 t)
 {
   vec2 q = vec2(length(p.xz)-t.x,p.y);
   return length(q)-t.y;
@@ -232,8 +235,8 @@ vec4 map(vec3 p,bool flag)
         yj = p.y - y+13.3;
         
     float da = sdTorus(vec3(p.x, y, p.z), vec2(1. + expandRings * hash12(vec2(yj, tj) + .2) + 2. * sineExpandRings * lfnoise(vec2(yj, tj) + .2), .5*ps));
-    da = min(da, sdTorus(vec3(p.x, y-ps, p.z), vec2(1. + expandRings * hash12(vec2(yj, tj) + .2)  + 2. * sineExpandRings * lfnoise(vec2(yj + ps, tj) + .2), .5*ps)));
-    da = min(da, sdTorus(vec3(p.x, y+ps, p.z), vec2(1. + expandRings * hash12(vec2(yj, tj) + .2)  + 2. * sineExpandRings * lfnoise(vec2(yj - ps, tj) + .2), .5*ps)));
+    da = min(da, sdTorus(vec3(p.x, y-ps, p.z), vec2(1. + expandRings * hash12(vec2(yj + ps, tj) + .2)  + 2. * sineExpandRings * lfnoise(vec2(yj + ps, tj) + .2), .5*ps)));
+    da = min(da, sdTorus(vec3(p.x, y+ps, p.z), vec2(1. + expandRings * hash12(vec2(yj - ps, tj) + .2)  + 2. * sineExpandRings * lfnoise(vec2(yj - ps, tj) + .2), .5*ps)));
     float c1 = colorEscalation * step(hash12(vec2(yj, tj) + .1),.2 + .8 * colorCandyNess) * hash12(vec2(yj, tj) + .4);
     dmin(d, da, 0., 0., c1);
     if(flag) scatter += max(-(da-1.1),0.) * .26 * glowEscalation * .5 * mix(weightedOklabLinearGradientOklab(c1), c.yyy, 1.-scale) * scale;
@@ -242,8 +245,6 @@ vec4 map(vec3 p,bool flag)
     float dc = length(p.xz) - .03;
     dmin(d, dc, 1., 0., .8);
     if(flag) scatter += max(-(dc-.7),0.) * .49 * weightedOklabLinearGradientOklab(.6);
-
-    // Floor
     
 	return d;
 }
@@ -254,6 +255,7 @@ vec3 normal(vec3 p)
 	return normalize(map(p,false).x-vec3(map(p - e.yxx,false).x, map(p - e.xyx,false).x, map(p - e.xxy,false).x));
 }
 
+// From gltracy https://www.shadertoy.com/view/lsXSz7
 vec3 radiance(
     vec3 n,		// macro surface normal
     vec3 l,		// direction from vertex to light
@@ -314,6 +316,9 @@ vec3 radiance(
     return ( brdf_spec + brdf_diff ) * clight * dot_n_l;
 }
 
+// The MADtracer, originally written by Virgill/Alcatraz.
+// https://www.shadertoy.com/view/ttlXRf
+// I made some modifications to include cook-torrance illumination. 
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
     lpos1 = vec3(0); 
@@ -333,7 +338,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     }
 
     stepTime = mod(iTime+.5*spb, spb)-.5*spb;
-    // nbeats = (iTime-stepTime+.5*spb)/spb + smoothstep(-.1*spb, .1*spb, stepTime);
     nbeats = tj / spb;
     scale = smoothstep(0., .05 * spb, stepTime)*smoothstep(.7*spb, 0., stepTime);
     hardBeats = round((iTime-mod(iTime, spb))/spb);
@@ -361,25 +365,18 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 	// borders :(
 	if(uv.y>.11 && uv.y<.89)
 	{
-    	
-		
         // camera
 		vec3 ro1 = vec3(0, 0, -5.), rd1 = normalize(vec3((2.*fragCoord.xy-iResolution.xy)/iResolution.x, 1));
 		float t1 = 0., t2 = 0.,t3=0., seed = 0.;
-        // rotate scene
-		//pR(rd1.xz,-.05*sin(.17*time));
-		//pR(rd1.yz, .02*sin(.19*time));
 
 //***************************************************************************************************
 // Cast ray
 //***************************************************************************************************     
   
-        //lpos1 = ro1;
         lpos1 = - 4.*c.yyx+.3*vec3(1.*cos(iTime), .3*sin(iTime), .5+sin(.5*iTime));				// position point light 1 
         lpos2 = - 4.*c.yyx+.3*vec3(1.2*cos(.3*iTime), .4*sin(.4*iTime), .5+sin(.2*iTime));   	// position point light 2
        
         seed=hash12(uv + 13.)+fract(float(iFrame)*1.e-3) + 137.;
-       // seed = (fragCoord.x+fragCoord.y);//+fract(iTime);   
 
 		vec3 scol=vec3(0);
         vec4 m1, m2, m3;
@@ -399,12 +396,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 			
             if (m1.x<.001)		// hit
             {
-            	//scol+= palette(m1.z)*step(1., m1.y)*50.;
-                
                 nor1 = normal(pos1); 
         
                 // cook torrance
-                
                 scol += 5.e1 * weightedOklabLinearGradientOklab(m1.w) * (.3 + .1 * radiance(nor1, normalize(lpos1-pos1), normalize(ro1-pos1), roughness));
                 scol += 5.e1 * weightedOklabLinearGradientOklab(m1.w) * (.3 + .1 * radiance(nor1, normalize(lpos2-pos1), normalize(ro1-pos1), roughness));
 
@@ -413,21 +407,15 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 
           
 			// Raymarch direct light 
-            //lpos3=vec3(sin(.5*iTime),1,0);				// light from ceiling 
             lpos3 = vec3(0.,1.,0.);
             lpos3 = mix(lpos3,hashHs(lpos3,seed),.15); 	// add randomness
         	pos2=pos1+lpos3*t2;							// calculate ray direction
             m2 = map(pos2,false);
             t2+=m2.x;
-            
-           	// if (m2.y>=1.&&m2.z==0.) scol+= .5 +5.*m1.x*noise(7.*pos1+iTime);	// if ceiling hit
         }
-        
-      
-	  	nor1 = normal(pos1); 
-        
 
-        
+	  	nor1 = normal(pos1); 
+
         // bounce        
         m1.y=clamp(m1.y,0.,1.);
 		t2=0.;
@@ -439,9 +427,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
             pos2 = pos1+ rd2*t2;
 			m2 = map(pos2,false); 
             t2+=.2*m2.x;
-            scol += (.4 /*+ .6 * scale*/) * c.xxx*step(1., m2.y);
-           
-            
+            scol += .4 * c.xxx*step(1., m2.y);
         }
         
         if (m2.x<.001) {
@@ -450,20 +436,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
             scol += 5.e1 * weightedOklabLinearGradientOklab(m2.w) * (.3 + .1* radiance(nor2, normalize(lpos1-pos2), normalize(ro1-pos2), .5* roughness));
             scol += 5.e1 * weightedOklabLinearGradientOklab(m2.w) * (.3 + .1* radiance(nor2, normalize(lpos2-pos2), normalize(ro1-pos2), .5* roughness));
         }
-        
-        
 
-//		fragColor =vec4(scol*0.01+0.*scatter,0); //without blur
 		fragColor = vec4((.003*scol+0.02*scatter+1.*texture(iChannel0, uv).xyz), 0.)*.8; // with blur
-        
         fragColor = clamp(fragColor,0.,1.);
 	}
-}
-
-
-void post( out vec4 fragColor, in vec2 fragCoord )
-{
-    fragColor = texture(iChannel0, fragCoord.xy/iResolution.xy);
 }
 
 void main() {
@@ -483,7 +459,7 @@ void main() {
         //         }
         // out_color /= ssaa;
     }
-    else post(out_color, gl_FragCoord.xy);
+    else out_color = texture(iChannel0, gl_FragCoord.xy/iResolution.xy);
 
     out_color.rgb *= smoothstep(0., 2., iTime) * smoothstep(76., 74., iTime);
 }
