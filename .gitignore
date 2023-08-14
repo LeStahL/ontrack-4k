@@ -1,3 +1,9 @@
+# Python 
+__pycache__
+dist
+.venv
+
+# Build artifacts
 build
 
 # Prerequisites

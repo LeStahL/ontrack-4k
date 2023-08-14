@@ -53,19 +53,35 @@ set(sources
     gfx.inc
 )
 
+set(libraries
+    opengl32
+    kernel32
+    user32
+    gdi32
+    winmm
+)
+
 # Add a targets for the demo
 # SD
 add_executable(${PROJECT_NAME}-1280x720 ${sources})
 target_compile_definitions(${PROJECT_NAME}-1280x720 PRIVATE WIDTH=1280 HEIGHT=720)
-target_link_libraries(${PROJECT_NAME}-1280x720 opengl32 kernel32 user32 gdi32 winmm)
+target_link_libraries(${PROJECT_NAME}-1280x720 ${libraries})
+target_link_options(${PROJECT_NAME}-1280x720 PRIVATE /subsystem:windows)
 # HD
 add_executable(${PROJECT_NAME}-1920x1080 ${sources})
 target_compile_definitions(${PROJECT_NAME}-1920x1080 PRIVATE WIDTH=1920 HEIGHT=1080)
-target_link_libraries(${PROJECT_NAME}-1920x1080 opengl32 kernel32 user32 gdi32 winmm)
+target_link_libraries(${PROJECT_NAME}-1920x1080 ${libraries})
+target_link_options(${PROJECT_NAME}-1920x1080 PRIVATE /subsystem:windows)
 # 4k
 add_executable(${PROJECT_NAME}-3840x2160 ${sources})
 target_compile_definitions(${PROJECT_NAME}-3840x2160 PRIVATE WIDTH=3840 HEIGHT=2160)
-target_link_libraries(${PROJECT_NAME}-3840x2160 opengl32 kernel32 user32 gdi32 winmm)
+target_link_libraries(${PROJECT_NAME}-3840x2160 ${libraries})
+target_link_options(${PROJECT_NAME}-3840x2160 PRIVATE /subsystem:windows)
+
+# Add wave writer
+add_executable(wav wav.asm song.asm)
+target_link_libraries(wav PRIVATE ${libraries})
+target_link_options(wav PRIVATE /subsystem:console)
 
 # Pack release archive using the install mechanism
 install(

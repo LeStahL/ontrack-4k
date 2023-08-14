@@ -18,3 +18,29 @@ cmake_minimum_required(VERSION 3.25)
 project(ontrack-4k ASM_NASM)
 find_package(OpenGL REQUIRED)
 add_subdirectory(code)
+
+# Automatic video rendering; only enabled if python is present.
+find_package(Python)
+if(Python_FOUND)
+    set(VIDEO_DURATION 85)
+
+    make_directory("${PROJECT_BINARY_DIR}/frames")
+    make_directory("${PROJECT_BINARY_DIR}/video")
+    
+    add_custom_target(frames
+        COMMAND ${Python_EXECUTABLE} -m poetry run python -m video -o "${PROJECT_BINARY_DIR}/frames" -s "${PROJECT_SOURCE_DIR}/graphics/gfx.frag" -w 1920 -j 1080 -d ${VIDEO_DURATION} -r 60
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Rendering video frames..."
+    )
+
+    add_custom_target(music
+        COMMAND wav
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Rendering music wave file..."
+    )
+
+    add_custom_target(video
+        COMMAND ${FFMPEG} -framerate 60 -i frames/image.%d.png -f f32le -ac 2 -ar 44100 -i msx.raw "video/${PROJECT_NAME}-1920x1080.mp4" -y
+    )
+    add_dependencies(video frames music)
+endif()

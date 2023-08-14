@@ -24,6 +24,11 @@ If you want to build the actual release archive like it's on scene.org, which ma
 
 Then use the above commands to build and install. The release archive will be available in the install-prefix `ontrack-4k`.
 
+# Rendering a Video
+Rendering a video requires Python to be installed and in the system PATH. Also it should have poetry installed.
+
+The video target can be built using `ninja video`. It will run quite some time and the video will be available in the `video` subfolder.
+
 # License
 The source of product is (c) 2023 Alexander Kraus <nr4@z10.info> and GPLv3 (see LICENSE for details). The resulting audiovisual artifact is (c) 2023 Alexander Kraus <nr4@z10.info> and CC BY-NC-SA 3.0; see https://creativecommons.org/licenses/by-nc-sa/4.0/. If that is not enough for you, contact me and we might work something out.
 

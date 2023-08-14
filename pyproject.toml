@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "video"
+version = "0.1.0"
+description = "ontrack-4k video shenanigans"
+authors = ["Alexander Kraus <nr4@z10.info>"]
+license = "GPLv3"
+readme = "README.md"
+packages = [{include = "video"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyopengl = "^3.1.7"
+pyqt6 = "^6.5.2"
+argparse = "^1.4.0"
+numpy = "^1.25.2"
+pillow = "^10.0.0"
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
