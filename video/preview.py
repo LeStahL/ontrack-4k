@@ -40,6 +40,7 @@ class Preview(QMainWindow):
         rate: int,
         duration: int,
         output: str,
+        start: int,
         parent: Optional[QWidget] = None,
         flags: Qt.WindowType = Qt.WindowType.Window,
     ) -> None:
@@ -47,7 +48,7 @@ class Preview(QMainWindow):
 
         loadUi(join(dirname(__file__), 'preview.ui'), self)
 
-        self.renderer = Renderer(shaderSource, width, height, rate, duration, output, self)
+        self.renderer = Renderer(shaderSource, width, height, rate, duration, output, start, self)
         self.renderer.setMinimumSize(400, 320)
         self.centralWidget().layout().addWidget(self.renderer)
 

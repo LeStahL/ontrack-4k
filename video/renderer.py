@@ -37,6 +37,7 @@ class Renderer(QOpenGLWidget):
         rate: int,
         duration: int,
         output: str,
+        start: int,
         parent: Any,
     ) -> None:
         super().__init__()
@@ -49,7 +50,8 @@ class Renderer(QOpenGLWidget):
         self._parent = parent
         self.output = output
 
-        self.frame = 0
+        self.frame = start
+        self._start = start
         self.textures = []
         self.framebuffers = []
 
@@ -70,7 +72,7 @@ class Renderer(QOpenGLWidget):
         self.framebuffer = glGenFramebuffers(1)
 
     def paintGL(self) -> None:
-        if self.frame == 0:
+        if self.frame == self._start:
             glActiveTexture(GL_TEXTURE0)
             glBindTexture(GL_TEXTURE_2D, self.texture)
 
@@ -78,13 +80,21 @@ class Renderer(QOpenGLWidget):
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, self._width, self._height, 0, GL_RGBA, GL_FLOAT, None)
+            
+            if self._start != 0:
+                image = Image.open(join(self.output, "image.{}.png".format(self._start - 1))).convert('RGBA').transpose(Image.FLIP_TOP_BOTTOM)
+                self.bytes = image.tobytes()
+                # pixels = image
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, self._width, self._height, 0, GL_RGBA, GL_FLOAT, self.bytes)
+
+            else:
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, self._width, self._height, 0, GL_RGBA, GL_FLOAT, None)
 
             glBindFramebuffer(GL_FRAMEBUFFER, self.framebuffer)
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texture, 0)
             
             glUniform1i(Renderer.UNIFORM_LOCATION_ICHANNEL0, 0)
-       
+
         framebufferBinding = glGetIntegerv(GL_FRAMEBUFFER_BINDING)
         
         glUniform1i(Renderer.UNIFORM_LOCATION_IFRAME, self.frame)

@@ -19,6 +19,11 @@ from sys import (
     argv,
     exit,
 )
+from os import listdir
+from os.path import (
+    join,
+    dirname,
+)
 from PyQt6.QtWidgets import QApplication
 from .preview import Preview
 
@@ -30,6 +35,7 @@ if __name__ == '__main__':
     parser.add_argument('-j,--height', type=int, dest='height', required=True, help='Height of video.')
     parser.add_argument('-r,--rate', type=int, dest='rate', default=60, help='Frame rate for the video.')
     parser.add_argument('-d,--duration', type=int, dest='duration', required=True, help='Duration of the video rendering.')
+    parser.add_argument('-f,--fill', dest='fill', action='store_true', help='add to the frames already present.')
     args = parser.parse_args()
 
     app = QApplication(argv)
@@ -38,7 +44,11 @@ if __name__ == '__main__':
     with open(args.shader, 'rt') as f:
         shaderSource = f.read()
 
-    preview = Preview(shaderSource, args.width, args.height, args.rate, args.duration, args.output)
+    start = 0
+    if args.fill:
+        start = len(listdir(args.output))
+
+    preview = Preview(shaderSource, args.width, args.height, args.rate, args.duration, args.output, start)
     preview.show()
 
     app.exec()
