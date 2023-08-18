@@ -444,20 +444,20 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 
 void main() {
     if(iPass == 0) {
-        // mainImage(out_color, gl_FragCoord.xy);
-        float ssaa = 9.;
-        out_color = vec4(0.);
-        float bound = sqrt(ssaa)-1.;
-            for(float i = -.5*bound; i<=.5*bound; i+=1.)
-                for(float j=-.5*bound; j<=.5*bound; j+=1.)
-                {
-                    vec4 c1;
-                    float r = pi/4.;
-                    mat2 R = mat2(cos(r),sin(r),-sin(r),cos(r));
-                    mainImage(c1, gl_FragCoord.xy+R*(vec2(i,j)*1./max(bound, 1.)));
-                    out_color += c1;
-                }
-        out_color /= ssaa;
+        mainImage(out_color, gl_FragCoord.xy);
+        // float ssaa = 9.;
+        // out_color = vec4(0.);
+        // float bound = sqrt(ssaa)-1.;
+        //     for(float i = -.5*bound; i<=.5*bound; i+=1.)
+        //         for(float j=-.5*bound; j<=.5*bound; j+=1.)
+        //         {
+        //             vec4 c1;
+        //             float r = pi/4.;
+        //             mat2 R = mat2(cos(r),sin(r),-sin(r),cos(r));
+        //             mainImage(c1, gl_FragCoord.xy+R*(vec2(i,j)*1./max(bound, 1.)));
+        //             out_color += c1;
+        //         }
+        // out_color /= ssaa;
     }
     else out_color = texture(iChannel0, gl_FragCoord.xy/iResolution.xy);
 
